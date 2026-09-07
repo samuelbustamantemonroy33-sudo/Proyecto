@@ -1,4 +1,4 @@
-import { registrarReserva, listarReservas, modificarReserva, borrarReserva, consultarReserva } from '../services/servicesReserva.js';
+import { registrarReserva, listarReservas, modificarReserva, borrarReserva, consultarReserva, cancelarReserva } from '../services/servicesReserva.js';
 
 export const listar = (peticion, respuesta) => {
   listarReservas()
@@ -40,4 +40,14 @@ export const obtenerPorId = (peticion, respuesta) => {
       respuesta.status(200).json(resultado);
     })
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar la reserva', error: error.message }));
+};
+
+export const cancelar = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  cancelarReserva(id)
+    .then(([filasAfectadas]) => {
+      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Reserva no encontrada' });
+      respuesta.status(200).json({ mensaje: 'Reserva cancelada correctamente' });
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al cancelar la reserva', error: error.message }));
 };
