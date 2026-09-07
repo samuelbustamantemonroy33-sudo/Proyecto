@@ -18,7 +18,7 @@ app.listen(PORT, () => {
 
 conn.authenticate()
     .then(() => {
-        return conn.sync()
+        return conn.sync({ alter: true })
     })
     .then(() => console.log("Conexión nitida"))
     .catch((error) => console.log(error))
