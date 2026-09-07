@@ -5,6 +5,9 @@ import { router } from './src/routes/index.js';
 
 const app = express()
 
+app.use(express.json())
+app.use(router)
+
 const PORT = 3000
 const SERVER = "http://localhost:"
 const URL = SERVER + PORT
