@@ -1,4 +1,6 @@
 import { registrarLibro, listarLibros, modificarLibro, borrarLibro, consultarLibroTitulo } from '../services/servicesLibro.js';
+import { registrarLibroAutor } from '../services/servicesLibroAutor.js';
+import { registrarLibroCategoria } from '../services/servicesLibroCategoria.js';
 
 export const listar = (peticion, respuesta) => {
   listarLibros()
@@ -40,4 +42,20 @@ export const buscarPorTitulo = (peticion, respuesta) => {
       respuesta.status(200).json(resultado);
     })
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar el libro', error: error.message }));
+};
+
+export const agregarAutor = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  const { id_autor } = peticion.body;
+  registrarLibroAutor({ id_libro: id, id_autor })
+    .then((nuevaRelacion) => respuesta.status(201).json(nuevaRelacion))
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al asociar el autor al libro', error: error.message }));
+};
+
+export const agregarCategoria = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  const { id_categoria } = peticion.body;
+  registrarLibroCategoria({ id_libro: id, id_categoria })
+    .then((nuevaRelacion) => respuesta.status(201).json(nuevaRelacion))
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al asociar la categoría al libro', error: error.message }));
 };
