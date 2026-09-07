@@ -29,3 +29,8 @@ export function consultarNotificacion(id) {
   if (!id) return Promise.reject(new Error("El ID es obligatorio..."));
   return ModelNotificacion.findByPk(id);
 }
+
+export function marcarNotificacionLeida(id) {
+  if (!id) return Promise.reject(new Error("El ID es obligatorio..."));
+  return ModelNotificacion.update({ leida: true }, { where: { id_notificacion: id } });
+}

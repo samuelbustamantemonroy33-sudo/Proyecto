@@ -1,4 +1,4 @@
-import { registrarNotificacion, listarNotificaciones, modificarNotificacion, borrarNotificacion, consultarNotificacion } from '../services/servicesNotificacion.js';
+import { registrarNotificacion, listarNotificaciones, modificarNotificacion, borrarNotificacion, consultarNotificacion, marcarNotificacionLeida } from '../services/servicesNotificacion.js';
 
 export const listar = (peticion, respuesta) => {
   listarNotificaciones()
@@ -40,4 +40,14 @@ export const obtenerPorId = (peticion, respuesta) => {
       respuesta.status(200).json(resultado);
     })
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar la notificación', error: error.message }));
+};
+
+export const marcarLeida = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  marcarNotificacionLeida(id)
+    .then(([filasAfectadas]) => {
+      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Notificación no encontrada' });
+      respuesta.status(200).json({ mensaje: 'Notificación marcada como leída' });
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al marcar la notificación como leída', error: error.message }));
 };
