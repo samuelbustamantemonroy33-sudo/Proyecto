@@ -1,4 +1,4 @@
-import { registrarMulta, listarMultas, modificarMulta, borrarMulta, consultarMulta } from '../services/servicesMulta.js';
+import { registrarMulta, listarMultas, modificarMulta, borrarMulta, consultarMulta, pagarMulta } from '../services/servicesMulta.js';
 
 export const listar = (peticion, respuesta) => {
   listarMultas()
@@ -40,4 +40,14 @@ export const obtenerPorId = (peticion, respuesta) => {
       respuesta.status(200).json(resultado);
     })
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar la multa', error: error.message }));
+};
+
+export const pagar = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  pagarMulta(id)
+    .then(([filasAfectadas]) => {
+      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Multa no encontrada' });
+      respuesta.status(200).json({ mensaje: 'Multa pagada correctamente' });
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al pagar la multa', error: error.message }));
 };

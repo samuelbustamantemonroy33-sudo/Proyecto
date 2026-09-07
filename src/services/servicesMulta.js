@@ -1,4 +1,7 @@
 import { ModelMulta } from "../models/ModelMulta.js";
+import { ModelEstadoMulta } from "../models/ModelEstadoMulta.js";
+
+const ESTADO_MULTA_PAGADA = "Pagada";
 
 export function registrarMulta(data) {
   if (
@@ -29,4 +32,18 @@ export function borrarMulta(id) {
 export function consultarMulta(id) {
   if (!id) return Promise.reject(new Error("El ID es obligatorio..."));
   return ModelMulta.findByPk(id);
+}
+
+export function pagarMulta(id) {
+  if (!id) return Promise.reject(new Error("El ID es obligatorio..."));
+  return ModelEstadoMulta
+    .findOne({ where: { nombre_estado: ESTADO_MULTA_PAGADA } })
+    .then((estadoPagada) => {
+      if (!estadoPagada)
+        return Promise.reject(new Error(`No existe el estado "${ESTADO_MULTA_PAGADA}" en Estados_Multa`));
+      return ModelMulta.update(
+        { id_estado_multa: estadoPagada.id_estado_multa, fecha_pago: new Date().toISOString().slice(0, 10) },
+        { where: { id_multa: id } }
+      );
+    });
 }
