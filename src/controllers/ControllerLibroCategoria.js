@@ -1,46 +1,33 @@
-import ModelLibroCategoria from '../models/ModelLibroCategoria.js';
+import { registrarLibroCategoria, listarLibrosCategorias, modificarLibroCategoria, borrarLibroCategoria } from '../services/servicesLibroCategoria.js';
 
-export const obtenerTodos = (peticion, respuesta) => {
-  ModelLibroCategoria.findAll()
-    .then((relaciones) => respuesta.status(200).json(relaciones))
+export const listar = (peticion, respuesta) => {
+  listarLibrosCategorias()
+    .then((resultado) => respuesta.status(200).json(resultado))
     .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener las relaciones libro-categoría', error: error.message }));
 };
 
-export const obtenerPorId = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  ModelLibroCategoria.findByPk(id)
-    .then((relacion) => {
-      if (!relacion) return respuesta.status(404).json({ mensaje: 'Relación no encontrada' });
-      respuesta.status(200).json(relacion);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al buscar la relación', error: error.message }));
-};
-
 export const crear = (peticion, respuesta) => {
-  ModelLibroCategoria.create(peticion.body)
+  registrarLibroCategoria(peticion.body)
     .then((nuevaRelacion) => respuesta.status(201).json(nuevaRelacion))
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al asociar el libro con la categoría', error: error.message }));
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear la relación libro-categoría', error: error.message }));
 };
 
-export const actualizar = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  ModelLibroCategoria.update(peticion.body, { where: { id } })
+export const editar = (peticion, respuesta) => {
+  const { id_libro, id_categoria } = peticion.params;
+  modificarLibroCategoria(peticion.body, { id_libro, id_categoria })
     .then(([filasAfectadas]) => {
-      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Relación no encontrada o sin cambios' });
-      return ModelLibroCategoria.findByPk(id);
+      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Relación libro-categoría no encontrada o sin cambios' });
+      respuesta.status(200).json({ mensaje: 'Relación libro-categoría actualizada correctamente' });
     })
-    .then((relacionActualizada) => {
-      if (relacionActualizada) respuesta.status(200).json(relacionActualizada);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al actualizar la relación', error: error.message }));
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar la relación libro-categoría', error: error.message }));
 };
 
 export const eliminar = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  ModelLibroCategoria.destroy({ where: { id } })
+  const { id_libro, id_categoria } = peticion.params;
+  borrarLibroCategoria({ id_libro, id_categoria })
     .then((filasEliminadas) => {
-      if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Relación no encontrada' });
-      respuesta.status(200).json({ mensaje: 'Relación eliminada correctamente' });
+      if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Relación libro-categoría no encontrada' });
+      respuesta.status(200).json({ mensaje: 'Relación libro-categoría eliminada correctamente' });
     })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar la relación', error: error.message }));
+    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar la relación libro-categoría', error: error.message }));
 };

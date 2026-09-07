@@ -1,46 +1,43 @@
-import ModelIdioma from '../models/ModelIdioma.js';
+import { registrarIdioma, listarIdiomas, modificarIdioma, borrarIdioma, consultarIdiomaNombre } from '../services/servicesIdioma.js';
 
-export const obtenerTodos = (peticion, respuesta) => {
-  ModelIdioma.findAll()
-    .then((idiomas) => respuesta.status(200).json(idiomas))
+export const listar = (peticion, respuesta) => {
+  listarIdiomas()
+    .then((resultado) => respuesta.status(200).json(resultado))
     .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener los idiomas', error: error.message }));
 };
 
-export const obtenerPorId = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  ModelIdioma.findByPk(id)
-    .then((idioma) => {
-      if (!idioma) return respuesta.status(404).json({ mensaje: 'Idioma no encontrado' });
-      respuesta.status(200).json(idioma);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al buscar el idioma', error: error.message }));
-};
-
 export const crear = (peticion, respuesta) => {
-  ModelIdioma.create(peticion.body)
-    .then((nuevoIdioma) => respuesta.status(201).json(nuevoIdioma))
+  registrarIdioma(peticion.body)
+    .then((nuevoRegistro) => respuesta.status(201).json(nuevoRegistro))
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear el idioma', error: error.message }));
 };
 
-export const actualizar = (peticion, respuesta) => {
+export const editar = (peticion, respuesta) => {
   const { id } = peticion.params;
-  ModelIdioma.update(peticion.body, { where: { id } })
+  modificarIdioma(peticion.body, id)
     .then(([filasAfectadas]) => {
       if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Idioma no encontrado o sin cambios' });
-      return ModelIdioma.findByPk(id);
+      respuesta.status(200).json({ mensaje: 'Idioma actualizado correctamente' });
     })
-    .then((idiomaActualizado) => {
-      if (idiomaActualizado) respuesta.status(200).json(idiomaActualizado);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al actualizar el idioma', error: error.message }));
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar el idioma', error: error.message }));
 };
 
 export const eliminar = (peticion, respuesta) => {
   const { id } = peticion.params;
-  ModelIdioma.destroy({ where: { id } })
+  borrarIdioma(id)
     .then((filasEliminadas) => {
       if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Idioma no encontrado' });
       respuesta.status(200).json({ mensaje: 'Idioma eliminado correctamente' });
     })
     .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar el idioma', error: error.message }));
+};
+
+export const buscarPorNombre = (peticion, respuesta) => {
+  const { nombre } = peticion.query;
+  consultarIdiomaNombre(nombre)
+    .then((resultado) => {
+      if (!resultado) return respuesta.status(404).json({ mensaje: 'Idioma no encontrado' });
+      respuesta.status(200).json(resultado);
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar el idioma', error: error.message }));
 };

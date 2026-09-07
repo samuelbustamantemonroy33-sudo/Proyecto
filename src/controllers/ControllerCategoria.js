@@ -1,46 +1,43 @@
-import ModelCategoria from '../models/ModelCategoria.js';
+import { registrarCategoria, listarCategorias, modificarCategoria, borrarCategoria, consultarCategoriaNombre } from '../services/servicesCategoria.js';
 
-export const obtenerTodos = (peticion, respuesta) => {
-  ModelCategoria.findAll()
-    .then((categorias) => respuesta.status(200).json(categorias))
+export const listar = (peticion, respuesta) => {
+  listarCategorias()
+    .then((resultado) => respuesta.status(200).json(resultado))
     .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener las categorías', error: error.message }));
 };
 
-export const obtenerPorId = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  ModelCategoria.findByPk(id)
-    .then((categoria) => {
-      if (!categoria) return respuesta.status(404).json({ mensaje: 'Categoría no encontrada' });
-      respuesta.status(200).json(categoria);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al buscar la categoría', error: error.message }));
-};
-
 export const crear = (peticion, respuesta) => {
-  ModelCategoria.create(peticion.body)
-    .then((nuevaCategoria) => respuesta.status(201).json(nuevaCategoria))
+  registrarCategoria(peticion.body)
+    .then((nuevoRegistro) => respuesta.status(201).json(nuevoRegistro))
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear la categoría', error: error.message }));
 };
 
-export const actualizar = (peticion, respuesta) => {
+export const editar = (peticion, respuesta) => {
   const { id } = peticion.params;
-  ModelCategoria.update(peticion.body, { where: { id } })
+  modificarCategoria(peticion.body, id)
     .then(([filasAfectadas]) => {
       if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Categoría no encontrada o sin cambios' });
-      return ModelCategoria.findByPk(id);
+      respuesta.status(200).json({ mensaje: 'Categoría actualizada correctamente' });
     })
-    .then((categoriaActualizada) => {
-      if (categoriaActualizada) respuesta.status(200).json(categoriaActualizada);
-    })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al actualizar la categoría', error: error.message }));
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar la categoría', error: error.message }));
 };
 
 export const eliminar = (peticion, respuesta) => {
   const { id } = peticion.params;
-  ModelCategoria.destroy({ where: { id } })
+  borrarCategoria(id)
     .then((filasEliminadas) => {
       if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Categoría no encontrada' });
       respuesta.status(200).json({ mensaje: 'Categoría eliminada correctamente' });
     })
     .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar la categoría', error: error.message }));
+};
+
+export const buscarPorNombre = (peticion, respuesta) => {
+  const { nombre } = peticion.query;
+  consultarCategoriaNombre(nombre)
+    .then((resultado) => {
+      if (!resultado) return respuesta.status(404).json({ mensaje: 'Categoría no encontrada' });
+      respuesta.status(200).json(resultado);
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar la categoría', error: error.message }));
 };
