@@ -1,4 +1,4 @@
-import { registrarPrestamo, listarPrestamos, modificarPrestamo, borrarPrestamo, consultarPrestamo } from '../services/servicesPrestamo.js';
+import { registrarPrestamo, listarPrestamos, modificarPrestamo, borrarPrestamo, consultarPrestamo, devolverPrestamo } from '../services/servicesPrestamo.js';
 
 export const listar = (peticion, respuesta) => {
   listarPrestamos()
@@ -40,4 +40,14 @@ export const obtenerPorId = (peticion, respuesta) => {
       respuesta.status(200).json(resultado);
     })
     .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar el préstamo', error: error.message }));
+};
+
+export const devolver = (peticion, respuesta) => {
+  const { id } = peticion.params;
+  devolverPrestamo(id)
+    .then(([filasAfectadas]) => {
+      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Préstamo no encontrado' });
+      respuesta.status(200).json({ mensaje: 'Préstamo devuelto correctamente' });
+    })
+    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al devolver el préstamo', error: error.message }));
 };
