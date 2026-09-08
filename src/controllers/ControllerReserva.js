@@ -1,53 +1,53 @@
 import { registrarReserva, listarReservas, modificarReserva, borrarReserva, consultarReserva, cancelarReserva } from '../services/servicesReserva.js';
 
-export const listar = (peticion, respuesta) => {
+export const listar = (req, res) => {
   listarReservas()
-    .then((resultado) => respuesta.status(200).json(resultado))
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener las reservas', error: error.message }));
+    .then((resultado) => res.status(200).json(resultado))
+    .catch((error) => res.status(500).json({ mensaje: 'Error al obtener las reservas', error: error.message }));
 };
 
-export const crear = (peticion, respuesta) => {
-  registrarReserva(peticion.body)
-    .then((nuevoRegistro) => respuesta.status(201).json(nuevoRegistro))
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear la reserva', error: error.message }));
+export const crear = (req, res) => {
+  registrarReserva(req.body)
+    .then((nuevoRegistro) => res.status(201).json(nuevoRegistro))
+    .catch((error) => res.status(400).json({ mensaje: 'Error al crear la reserva', error: error.message }));
 };
 
-export const editar = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  modificarReserva(peticion.body, id)
+export const editar = (req, res) => {
+  const { id } = req.params;
+  modificarReserva(req.body, id)
     .then(([filasAfectadas]) => {
-      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Reserva no encontrada o sin cambios' });
-      respuesta.status(200).json({ mensaje: 'Reserva actualizada correctamente' });
+      if (filasAfectadas === 0) return res.status(404).json({ mensaje: 'Reserva no encontrada o sin cambios' });
+      res.status(200).json({ mensaje: 'Reserva actualizada correctamente' });
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar la reserva', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al actualizar la reserva', error: error.message }));
 };
 
-export const eliminar = (peticion, respuesta) => {
-  const { id } = peticion.params;
+export const eliminar = (req, res) => {
+  const { id } = req.params;
   borrarReserva(id)
     .then((filasEliminadas) => {
-      if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Reserva no encontrada' });
-      respuesta.status(200).json({ mensaje: 'Reserva eliminada correctamente' });
+      if (filasEliminadas === 0) return res.status(404).json({ mensaje: 'Reserva no encontrada' });
+      res.status(200).json({ mensaje: 'Reserva eliminada correctamente' });
     })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar la reserva', error: error.message }));
+    .catch((error) => res.status(500).json({ mensaje: 'Error al eliminar la reserva', error: error.message }));
 };
 
-export const obtenerPorId = (peticion, respuesta) => {
-  const { id } = peticion.params;
+export const obtenerPorId = (req, res) => {
+  const { id } = req.params;
   consultarReserva(id)
     .then((resultado) => {
-      if (!resultado) return respuesta.status(404).json({ mensaje: 'Reserva no encontrada' });
-      respuesta.status(200).json(resultado);
+      if (!resultado) return res.status(404).json({ mensaje: 'Reserva no encontrada' });
+      res.status(200).json(resultado);
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar la reserva', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al buscar la reserva', error: error.message }));
 };
 
-export const cancelar = (peticion, respuesta) => {
-  const { id } = peticion.params;
+export const cancelar = (req, res) => {
+  const { id } = req.params;
   cancelarReserva(id)
     .then(([filasAfectadas]) => {
-      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Reserva no encontrada' });
-      respuesta.status(200).json({ mensaje: 'Reserva cancelada correctamente' });
+      if (filasAfectadas === 0) return res.status(404).json({ mensaje: 'Reserva no encontrada' });
+      res.status(200).json({ mensaje: 'Reserva cancelada correctamente' });
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al cancelar la reserva', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al cancelar la reserva', error: error.message }));
 };

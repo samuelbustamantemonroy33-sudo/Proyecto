@@ -1,43 +1,43 @@
 import { registrarPais, listarPaises, modificarPais, borrarPais, consultarPaisNombre } from '../services/servicesPais.js';
 
-export const listar = (peticion, respuesta) => {
+export const listar = (req, res) => {
   listarPaises()
-    .then((resultado) => respuesta.status(200).json(resultado))
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener los países', error: error.message }));
+    .then((resultado) => res.status(200).json(resultado))
+    .catch((error) => res.status(500).json({ mensaje: 'Error al obtener los países', error: error.message }));
 };
 
-export const crear = (peticion, respuesta) => {
-  registrarPais(peticion.body)
-    .then((nuevoRegistro) => respuesta.status(201).json(nuevoRegistro))
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear el país', error: error.message }));
+export const crear = (req, res) => {
+  registrarPais(req.body)
+    .then((nuevoRegistro) => res.status(201).json(nuevoRegistro))
+    .catch((error) => res.status(400).json({ mensaje: 'Error al crear el país', error: error.message }));
 };
 
-export const editar = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  modificarPais(peticion.body, id)
+export const editar = (req, res) => {
+  const { id } = req.params;
+  modificarPais(req.body, id)
     .then(([filasAfectadas]) => {
-      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'País no encontrado o sin cambios' });
-      respuesta.status(200).json({ mensaje: 'País actualizado correctamente' });
+      if (filasAfectadas === 0) return res.status(404).json({ mensaje: 'País no encontrado o sin cambios' });
+      res.status(200).json({ mensaje: 'País actualizado correctamente' });
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar el país', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al actualizar el país', error: error.message }));
 };
 
-export const eliminar = (peticion, respuesta) => {
-  const { id } = peticion.params;
+export const eliminar = (req, res) => {
+  const { id } = req.params;
   borrarPais(id)
     .then((filasEliminadas) => {
-      if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'País no encontrado' });
-      respuesta.status(200).json({ mensaje: 'País eliminado correctamente' });
+      if (filasEliminadas === 0) return res.status(404).json({ mensaje: 'País no encontrado' });
+      res.status(200).json({ mensaje: 'País eliminado correctamente' });
     })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar el país', error: error.message }));
+    .catch((error) => res.status(500).json({ mensaje: 'Error al eliminar el país', error: error.message }));
 };
 
-export const buscarPorNombre = (peticion, respuesta) => {
-  const { nombre } = peticion.query;
+export const buscarPorNombre = (req, res) => {
+  const { nombre } = req.query;
   consultarPaisNombre(nombre)
     .then((resultado) => {
-      if (!resultado) return respuesta.status(404).json({ mensaje: 'País no encontrado' });
-      respuesta.status(200).json(resultado);
+      if (!resultado) return res.status(404).json({ mensaje: 'País no encontrado' });
+      res.status(200).json(resultado);
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar el país', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al buscar el país', error: error.message }));
 };

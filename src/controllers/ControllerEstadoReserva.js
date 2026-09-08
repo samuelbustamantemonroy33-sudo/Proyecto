@@ -1,43 +1,43 @@
 import { registrarEstadoReserva, listarEstadosReserva, modificarEstadoReserva, borrarEstadoReserva, consultarEstadoReservaNombre } from '../services/servicesEstadoReserva.js';
 
-export const listar = (peticion, respuesta) => {
+export const listar = (req, res) => {
   listarEstadosReserva()
-    .then((resultado) => respuesta.status(200).json(resultado))
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al obtener los estados de reserva', error: error.message }));
+    .then((resultado) => res.status(200).json(resultado))
+    .catch((error) => res.status(500).json({ mensaje: 'Error al obtener los estados de reserva', error: error.message }));
 };
 
-export const crear = (peticion, respuesta) => {
-  registrarEstadoReserva(peticion.body)
-    .then((nuevoRegistro) => respuesta.status(201).json(nuevoRegistro))
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al crear el estado de la reserva', error: error.message }));
+export const crear = (req, res) => {
+  registrarEstadoReserva(req.body)
+    .then((nuevoRegistro) => res.status(201).json(nuevoRegistro))
+    .catch((error) => res.status(400).json({ mensaje: 'Error al crear el estado de la reserva', error: error.message }));
 };
 
-export const editar = (peticion, respuesta) => {
-  const { id } = peticion.params;
-  modificarEstadoReserva(peticion.body, id)
+export const editar = (req, res) => {
+  const { id } = req.params;
+  modificarEstadoReserva(req.body, id)
     .then(([filasAfectadas]) => {
-      if (filasAfectadas === 0) return respuesta.status(404).json({ mensaje: 'Estado de la reserva no encontrado o sin cambios' });
-      respuesta.status(200).json({ mensaje: 'Estado de la reserva actualizado correctamente' });
+      if (filasAfectadas === 0) return res.status(404).json({ mensaje: 'Estado de la reserva no encontrado o sin cambios' });
+      res.status(200).json({ mensaje: 'Estado de la reserva actualizado correctamente' });
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al actualizar el estado de la reserva', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al actualizar el estado de la reserva', error: error.message }));
 };
 
-export const eliminar = (peticion, respuesta) => {
-  const { id } = peticion.params;
+export const eliminar = (req, res) => {
+  const { id } = req.params;
   borrarEstadoReserva(id)
     .then((filasEliminadas) => {
-      if (filasEliminadas === 0) return respuesta.status(404).json({ mensaje: 'Estado de la reserva no encontrado' });
-      respuesta.status(200).json({ mensaje: 'Estado de la reserva eliminado correctamente' });
+      if (filasEliminadas === 0) return res.status(404).json({ mensaje: 'Estado de la reserva no encontrado' });
+      res.status(200).json({ mensaje: 'Estado de la reserva eliminado correctamente' });
     })
-    .catch((error) => respuesta.status(500).json({ mensaje: 'Error al eliminar el estado de la reserva', error: error.message }));
+    .catch((error) => res.status(500).json({ mensaje: 'Error al eliminar el estado de la reserva', error: error.message }));
 };
 
-export const buscarPorNombre = (peticion, respuesta) => {
-  const { nombre } = peticion.query;
+export const buscarPorNombre = (req, res) => {
+  const { nombre } = req.query;
   consultarEstadoReservaNombre(nombre)
     .then((resultado) => {
-      if (!resultado) return respuesta.status(404).json({ mensaje: 'Estado de la reserva no encontrado' });
-      respuesta.status(200).json(resultado);
+      if (!resultado) return res.status(404).json({ mensaje: 'Estado de la reserva no encontrado' });
+      res.status(200).json(resultado);
     })
-    .catch((error) => respuesta.status(400).json({ mensaje: 'Error al buscar el estado de la reserva', error: error.message }));
+    .catch((error) => res.status(400).json({ mensaje: 'Error al buscar el estado de la reserva', error: error.message }));
 };
