@@ -1,16 +1,27 @@
-# React + Vite
+# Agenda ADSO
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Agenda de contactos con React, API Node.js/Express en `backend/`, autenticacion JWT y base de datos SQLite.
 
-Currently, two official plugins are available:
+## Ejecutar en desarrollo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Copia `.env.example` como `.env` y cambia `JWT_SECRET`.
+2. En una terminal ejecuta `npm run server:dev`.
+3. En otra terminal ejecuta `npm run dev`.
+4. Abre la URL mostrada por Vite.
 
-## React Compiler
+La base de datos se crea automaticamente en `data/agenda.db`. Cada usuario solo puede consultar y modificar sus contactos. El rol `admin` puede consultar todos los contactos y usuarios.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## API principal
 
-## Expanding the Oxlint configuration
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET/POST /api/contacts`
+- `PUT/DELETE /api/contacts/:id`
+- `GET /api/users` para administradores.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Validacion
+
+- `npm run build` comprueba el frontend.
+- `npm run server` inicia la API.
+- `GET /api/health` comprueba que la API este disponible.

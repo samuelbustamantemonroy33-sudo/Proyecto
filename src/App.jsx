@@ -6,59 +6,28 @@ import "./App.css";
 import ContactoCard from "./components/ContactoCard";
 // Importa el formulario para crear contactos.
 import FormularioContacto from "./components/FormularioContacto";
+import AuthPanel from "./components/AuthPanel";
+
+const tokenStorageKey = "agenda-token";
+
+async function readResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+  const body = await response.text();
+  if (!body) return {};
+  if (contentType.includes("application/json")) {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return { error: "El servidor devolvió una respuesta inválida." };
+    }
+  }
+  return { error: body.slice(0, 160) };
+}
 
 export default function App() {
-  const [contactos, setContactos] = useState([
-    {
-      id: 1,
-      nombre: "Carolina Pérez",
-      telefono: "300 123 4567",
-      correo: "carolina@sena.edu.co",
-      etiqueta: "Compañera",
-    },
-    {
-      id: 2,
-      nombre: "Mateo Silva",
-      telefono: "301 456 8899",
-      correo: "mateo@sena.edu.co",
-      etiqueta: "Familia",
-    },
-    {
-      id: 3,
-      nombre: "Lucía Gómez",
-      telefono: "320 220 3344",
-      correo: "lucia@sena.edu.co",
-      etiqueta: "Amiga",
-    },
-    {
-      id: 4,
-      nombre: "Daniel Ruiz",
-      telefono: "312 998 7755",
-      correo: "daniel@sena.edu.co",
-      etiqueta: "Colega",
-    },
-    {
-      id: 5,
-      nombre: "Sofía Ortega",
-      telefono: "314 667 1900",
-      correo: "sofia@sena.edu.co",
-      etiqueta: "Cliente",
-    },
-    {
-      id: 6,
-      nombre: "Andrés Mora",
-      telefono: "300 321 4422",
-      correo: "andres@sena.edu.co",
-      etiqueta: "Proveedor",
-    },
-    {
-      id: 7,
-      nombre: "Valeria Díaz",
-      telefono: "318 145 6622",
-      correo: "valeria@sena.edu.co",
-      etiqueta: "Compañera",
-    },
-  ]);
+  const [contactos, setContactos] = useState([]);
+  const [sesion, setSesion] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   // Guardará el contacto completo a editar (o null si solo estamos agregando)
   const [contactoEnEdicion, setContactoEnEdicion] = useState(null);
@@ -68,29 +37,68 @@ export default function App() {
   const [paginaActual, setPaginaActual] = useState(1);
   const [contactosPorPagina, setContactosPorPagina] = useState(3);
 
+  const solicitar = async (ruta, opciones = {}) => {
+    const token = localStorage.getItem(tokenStorageKey);
+    const response = await fetch(ruta, {
+      ...opciones,
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    const data = response.status === 204 ? null : await readResponse(response);
+    if (!response.ok) {
+      const detalles = data?.fields
+        ? Object.values(data.fields).filter(Boolean).join(" ")
+        : "";
+      throw new Error([data?.error, detalles].filter(Boolean).join(" ") || "No se pudo completar la solicitud.");
+    }
+    return data;
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem(tokenStorageKey);
+    if (!token) {
+      setCargando(false);
+      return;
+    }
+    solicitar("/api/auth/me")
+      .then(({ user }) => { setSesion(user); return solicitar("/api/contacts"); })
+      .then(({ contacts }) => setContactos(contacts))
+      .catch(() => localStorage.removeItem(tokenStorageKey))
+      .finally(() => setCargando(false));
+  }, []);
+
+  const autenticar = ({ user, token }) => {
+    localStorage.setItem(tokenStorageKey, token);
+    setSesion(user);
+    setCargando(true);
+    solicitar("/api/contacts").then(({ contacts }) => setContactos(contacts)).catch((requestError) => setError(requestError.message)).finally(() => setCargando(false));
+  };
+
   // Agrega o edita según corresponda
   const guardarContacto = async (datos) => {
     try {
       setError("");
       if (contactoEnEdicion) {
-      // Si estamos editando, reemplazamos el objeto correspondiente por su ID
-      setContactos((prev) =>
-        prev.map((c) => (c.id === contactoEnEdicion.id ? { ...c, ...datos } : c))
-      );
+        const { contact } = await solicitar(`/api/contacts/${contactoEnEdicion.id}`, { method: "PUT", body: JSON.stringify(datos) });
+        setContactos((prev) => prev.map((c) => (c.id === contact.id ? contact : c)));
         setContactoEnEdicion(null);
       } else {
-      // Si no estamos editando, agregamos un nuevo contacto
-      setContactos((prev) => [...prev, { id: Date.now(), ...datos }]);
+        const { contact } = await solicitar("/api/contacts", { method: "POST", body: JSON.stringify(datos) });
+        setContactos((prev) => [...prev, contact]);
       }
     } catch (guardarError) {
       console.error("Error al guardar el contacto:", guardarError);
-      setError("No se pudo guardar el contacto. Intenta de nuevo.");
+      setError(guardarError.message || "No se pudo guardar el contacto.");
       throw guardarError;
     }
   };
 
-  const eliminarContacto = (id) => {
-    setContactos((prev) => prev.filter((c) => c.id !== id));
+  const eliminarContacto = async (id) => {
+    try {
+      await solicitar(`/api/contacts/${id}`, { method: "DELETE" });
+      setContactos((prev) => prev.filter((c) => c.id !== id));
+    } catch (requestError) {
+      setError(requestError.message);
+    }
     // Si eliminamos el que se estaba editando, limpiamos la edición
     if (contactoEnEdicion?.id === id) setContactoEnEdicion(null);
   };
@@ -140,6 +148,9 @@ export default function App() {
     }
   }, [paginaActual, totalPaginas]);
 
+  if (cargando) return <main className="app-container"><p>Cargando tu agenda...</p></main>;
+  if (!sesion) return <main className="app-container"><AuthPanel onAuthenticated={autenticar} /></main>;
+
   return (
     <main className="app-container">
       <header className="app-header">
@@ -148,6 +159,7 @@ export default function App() {
           <h1 className="app-title">Tu agenda, en orden.</h1>
           <p className="app-subtitle">Guarda la información de las personas importantes para ti.</p>
         </div>
+        <div className="session-actions"><span>{sesion.nombre} · {sesion.role}</span><button type="button" onClick={() => { localStorage.removeItem(tokenStorageKey); setSesion(null); setContactos([]); }}>Cerrar sesión</button></div>
         <div className="contact-count" aria-label={`${contactos.length} contactos guardados`}>
           <strong>{String(contactos.length).padStart(2, "0")}</strong>
           <span>contactos</span>
@@ -207,6 +219,7 @@ export default function App() {
           <ContactoCard
             key={c.id}
             contacto={c}
+            esAdministrador={sesion.role === "admin"}
             onDelete={eliminarContacto}
             onEdit={seleccionarParaEditar}
           />
